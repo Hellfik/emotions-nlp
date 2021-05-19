@@ -62,6 +62,14 @@ def porter_stemmer(text):
     stems = [stemmer.stem(i) for i in text]
     return stems
 
+# Converting emotion to binary sentiment (Positif or negatif)
+def emotion_to_binary(emotion):
+    positif_sentiment = ['happy', 'love', 'surprise']
+
+    if emotion in positif_sentiment:
+        emotion = emotion.replace({1})
+    else:
+        emotion = emotion.replace({0})
 #-------------------------------#
 #          Vectorizer
 #-------------------------------#
@@ -96,10 +104,9 @@ def get_confusion_matrix(X_test, y_test, model):
 
 # Heatmap of the matrix of confusion
 def show_matrix_heatmap(matrix):
-    for i in matrix:
-        plt.title("Heatmap for the confusion matrix")
-        sns.heatmap(i, annot=True, fmt='d', cmap='YlGnBu')
-        plt.show()
+    plt.title("Heatmap for the confusion matrix")
+    sns.heatmap(i, annot=True, fmt='d', cmap='YlGnBu')
+    plt.show()
 
 # Function to plot the roc curve
 def show_roc_curve(X_test, y_test, model):
@@ -121,3 +128,13 @@ def show_roc_curve(X_test, y_test, model):
     plt.legend(loc=4)
 
     plt.show()
+
+def find_most_common_word(column):
+    corpus = []
+    for sentence in column:
+        for word in sentence:
+            corpus.append(word)
+    from nltk import FreqDist
+    fdist = FreqDist(corpus)
+    most_freq_words = pd.DataFrame(fdist.most_common(10), columns=["word", "frequence"])
+    return most_freq_words
