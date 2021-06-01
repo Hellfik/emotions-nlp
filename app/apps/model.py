@@ -1,3 +1,6 @@
+#-------------------------------#
+#         Module import         #
+#-------------------------------#
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -5,7 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from xgboost import XGBClassifier
+#from xgboost import XGBClassifier
 from sklearn.metrics import precision_recall_curve
 from sklearn.metrics import plot_precision_recall_curve
 from sklearn import preprocessing
@@ -25,12 +28,17 @@ import tensorflow as tf
 from keras.optimizers import Adam
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing import sequence
-import autokeras as ak
+#import autokeras as ak
 
 import sys
 sys.path.insert(0, "/work/emotions-nlp")
 
 from src.utils.functions import load_dataset, cv, tfidf_vectorizer
+
+
+#----------------------------------------------#
+#   Main function that calls our components    #
+#----------------------------------------------#
 
 def app():
     st.set_option('deprecation.showPyplotGlobalUse', False)
@@ -41,6 +49,10 @@ def app():
     st.write('The model performance of the Kaggle Dataset is presented below.')
 
     sidebar()
+
+#-------------------------------#
+#           Sidebar             #
+#-------------------------------#
 
 def sidebar():
 
@@ -153,7 +165,20 @@ def sidebar():
                     #auto_keras(X, Y)
                     #create_neural_network_emb(X,Y)
                     st.success('Done')
+
+#----------------------------------------#
+#   Machine learning models functions    #
+#----------------------------------------#
+
 def build_model(model, X, Y, vectorizer, decision):
+    """ 
+    Function to build a model based on the user choice: it displays the accuracy, the classification report and the confusion matrix
+    {model} => Define the machine learning model to use for the training
+    {X} => Text corpus variable
+    {Y} => Target variable (class to predict)
+    {vectorizer} => Technique that will be used to transform the text corpus into vectors (countvectorizer, tfdif)
+    {decision} => Boolean on which model we can use the decision_function()
+    """
     labels = [0,1]
     X, countvectorizer = vectorizer(X)
 
@@ -197,6 +222,9 @@ def build_model(model, X, Y, vectorizer, decision):
         st.pyplot()
 
 def sep():
+    """
+    Simple function to creates separators in the Streamlit Layout
+    """
     st.markdown('''--------------------------''')
 
 
@@ -204,8 +232,14 @@ def sep():
 #   Neural network functions    #
 #-------------------------------#
 
-# Tokenizing data for the neural network inputs
 def preparing_input_features(X):
+    """
+    Tokenizing data for the neural network inputs, this opertation is needed before we
+    can train our neural network model
+    It takes as parameter the text variable we are trying to classify as positive or negative
+    {X} => text corpus paramater
+    Returns the generated matrix and the features length
+    """
     max_len = 1000
     tok = Tokenizer(num_words=2000)
     tok.fit_on_texts(X)
@@ -214,39 +248,14 @@ def preparing_input_features(X):
 
     return sequences_matrix, max_len
 
-# Neural network model
-def build_neural_network(X, Y):
-    sequences_matrix, max_len = preparing_input_features(X)
-
-    X_train, X_test, Y_train, Y_test = train_test_split(sequences_matrix, Y, test_size=0.3, random_state=2)
-
-    inputs = Input(name='inputs',shape=[max_len])#step1
-    layer = Embedding(2000,50,input_length=max_len)(inputs) #step2
-    layer = Activation('relu')(layer) # step3
-    layer = Dropout(0.2)(layer) # step4
-    layer = Dense(1,name='out_layer')(layer) #step5 again but this time its giving only one output as because we need to classify the tweet as positive or negative
-    layer = Activation('sigmoid')(layer) #step6 but this time activation function is sigmoid for only one output.
-    model = Model(inputs=inputs,outputs=layer) #here we are getting the final output value in the model for classification
-    
-
-    return model, X_test, Y_test, X_train, Y_train #function returning the value when we call it
-
-def compilation_model(model, X, Y):
-    # Here we are calling the function of created model
-    model, X_test, Y_test, X_train, Y_train = build_neural_network(X, Y)
-    model.compile(loss='binary_crossentropy',optimizer=Adam(),metrics=['accuracy'])  
-
-    history = model.fit(X_train,Y_train,batch_size=100,epochs=2, validation_split=0.1)
-    score = model.evaluate(X_test, Y_test)
-    st.write('Accuracy:',score[1])
-    # Show the learning curves
-    history_df = pd.DataFrame(history.history)
-    st.write(history_df)
-    history_df.loc[:, ['loss', 'val_loss']].plot()
-    st.pyplot()
 
 # Autokeras model to find the best neural network structure(neurons and layers)
 def auto_keras(variables, target):
+    """
+    Function that finds the best structure for our neural network model
+    {variable} => Data to train on
+    {target} => The target variable (What we are trying to predict)
+    """
     X = variables
     y = target
 
@@ -262,15 +271,22 @@ def auto_keras(variables, target):
     st.write(predicted_y)
 
 def create_neural_network(X_train, y_train, X_test, y_test):
+    """
+    Function that creates a neural network using keras Sequential object
+    Activation function => Rectified Linear Unit (Return 0 if a negative value is passed and the value back if its > 0)
+    Last layer activation function => Sigmoid as we are trying to predict two classes (This will give us the probability of getting 1)
+    The metric that we will be evaluting our model on is the accuracy
+    Returns a dataframe that will be used to plot the learning curve
+    """
     input_dim = X_train.shape[1]
     model = keras.Sequential([
-    layers.Dense(10, input_shape=(input_dim,), activation='relu'),
+    layers.Dense(516, input_shape=(input_dim,), activation='relu'),
     layers.Dropout(0.2),
     layers.BatchNormalization(),
-    layers.Dense(10, activation='relu'),
+    layers.Dense(256, activation='relu'),
     layers.Dropout(0.2),
     layers.BatchNormalization(),
-    layers.Dense(10, activation='relu'),
+    layers.Dense(128, activation='relu'),
     layers.Dropout(0.2),
     layers.BatchNormalization(),
     layers.Dense(2, activation='sigmoid')
@@ -302,7 +318,10 @@ def create_neural_network(X_train, y_train, X_test, y_test):
 
 
 def display_nn(history_df):
-    # Show the learning curves
+    """
+    Function to display the learning curve of the neural network
+    {history_df} => Dataframe parameter
+    """
     history_df.loc[:, ['loss', 'val_loss']].plot()
     st.pyplot()
 
@@ -356,8 +375,3 @@ def create_neural_network_emb(X,y):
     history_df = pd.DataFrame(history.history)
 
     display_nn(history_df)
-    
-    """pred = pd.DataFrame(model.predict(X_test))
-    pred.rename(columns={0: "Negatif", 1: "Positif"}, errors="raise", inplace=True)
-    sentences_df = pd.DataFrame(X_test)
-    sentences_pred = pd.concat([sentences_df, pred], axis=1)"""
