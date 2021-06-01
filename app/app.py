@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 from multiapp import MultiApp
-from apps import home, data, model
+from apps import home, data, model, model_copy
 
 import sys
 sys.path.insert(0, "/work/emotions-nlp")
@@ -18,6 +18,7 @@ Made By **Farid** et **Mickael**
 # Add all your application here
 app.add_app("Home", home.app)
 app.add_app("Data", data.app)
-app.add_app("Model", model.app)
+app.add_app("Model", model_copy.app)
+#app.add_app("Model2", model.app)
 # The main app
 app.run()
