@@ -27,7 +27,7 @@ Classifier used :
 * LogisticRegression()
 * RandomForestClassifier()
 * DecisionTreeClassifier()
-* Neural Network ( Keras Sequential())
+* Neural Network ( Keras Sequential()) with an embedding technic
 
 ### Used Technologies
 
@@ -38,6 +38,20 @@ Classifier used :
 * Streamlit
 * TensorFlow
 * Sci-kit Learn 
+
+## How to use the app
+
+Once you have downloaded the project, navigate to the file root and then to the app file:
+
+```
+cd emotions-nlp/app
+```
+
+To start the app, run this command :
+
+```
+streamlit run app.py
+```
 
 ### File Structure
 ```
